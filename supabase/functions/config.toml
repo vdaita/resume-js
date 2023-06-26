@@ -1,0 +1,2 @@
+[functions.checkout_webhook]
+verify_jwt = false
