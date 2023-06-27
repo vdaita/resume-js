@@ -6,6 +6,7 @@ import styles from '@/styles/Home.module.css'
 import {createClient} from '@supabase/supabase-js';
 import { Button, ButtonGroup, Textarea, VStack, Input, Heading, Text, useToast} from '@chakra-ui/react';
 import axios from "axios";
+import { Auth, ThemeSupa } from '@supabase/auth-ui-react';
 import { loadStripe } from '@stripe/stripe-js';
 
 const inter = Inter({ subsets: ['latin'] })
@@ -20,9 +21,29 @@ export default function Home() {
   const [images, setImages] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
 
+  const [loading, setLoading] = useState(false);
+
   const toast = useToast();
 
-  let generateRandomString = (strLength) => {
+  const [userLoggedIn, setUserLoggedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.onAuthStateChange((event, session) => {
+      console.log(event, session);
+      if(session){
+        setUserLoggedIn(true);
+      } else {
+        setUserLoggedIn(false);
+      }
+    })
+  }, []);
+
+  let generateBucketId = async (strLength) => {
+
+    const { data: {user} } = await supabase.auth.getUser();
+    console.log(user);
+    let uid = user.id;
+
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const charactersLength = characters.length;
@@ -31,7 +52,7 @@ export default function Home() {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
       counter += 1;
     }
-    return Date.now().toString() + result;
+    return uid + "/" + Date.now().toString() + result;
   }
 
   let onImagesAdd = (e) => {
@@ -60,22 +81,15 @@ export default function Home() {
   }
 
   let uploadFilesToSupabase = async (bucketId, imagesToUpload) => {
-    const {data, error} = await supabase
-      .storage
-      .createBucket(bucketId);
-    if(error){
-      displayUploadError();
-      return false;
-    } else {
-      for(var i = 0; i < imagesToUpload.length; i++){
-        let x = uploadImage(bucketId, images[i], i);
-        if(x.error){
-          displayUploadError();
-          return false;
-        }
+    for(var i = 0; i < imagesToUpload.length; i++){
+      let x = uploadImage(bucketId, images[i], i);
+      if(x.error){
+        console.log(x.error);
+        displayUploadError();
+        return false;
       }
-      return true;
     }
+    return true;
   }
 
   let createNewRecordInSupabase = async(bucketId, name, email, prompts) => {
@@ -114,16 +128,19 @@ export default function Home() {
     setImageUrls(imagesUrlCpy);
   }
 
+  // the bucket for storage is images
   let uploadImage = async (bucketId, file, i) => {
-    const fileExtension = file.name.split(".")[-1];
-
+    const filenameSplitUp = file.name.split(".");
+    const fileExtension = filenameSplitUp[filenameSplitUp.length - 1];
+    console.log(file, fileExtension);
     const {data, error} = await supabase
       .storage
-      .from(bucketId)
-      .upload(i.toString() + '.' + fileExtension, file, {
+      .from("user_images")
+      .upload(bucketId + "/" + i.toString() + '.' + fileExtension, file, {
         cacheControl: '3600',
         upsert: false
       });
+    console.log(data, error);
     return {data, error};
   }
 
@@ -134,9 +151,12 @@ export default function Home() {
   }
 
   let uploadThenCheckout = async () => {
+
+    setLoading(true);
+
     // first, upload the images
-    let bucketId = generateRandomString(8);
-    let uploadWorked = await uploadFilesToSupabase(bucketId);
+    let bucketId = await generateBucketId(8);
+    let uploadWorked = await uploadFilesToSupabase(bucketId, images);
     if(!uploadWorked){
       return;
     }
@@ -147,6 +167,8 @@ export default function Home() {
     }
     // then, send the user to the checkout flow
     await processCheckout();
+
+    setLoading(false);
   }
 
   return (
@@ -160,38 +182,45 @@ export default function Home() {
       <main className={styles.main}>
           <Heading>petform</Heading>
 
-          <VStack>
-            <label>Select 5-10 photos of your pet, preferably from different angles and without any other subjects.</label>
+          {!userLoggedIn &&
+            <div>
+              <label>Please log in or sign up before submitting your form.</label>
+              <Auth 
+              supabaseClient={supabase}
+              appearance={{theme: ThemeSupa}}
+              providers={[]}
+              />
+            </div>
+          }
+
+          {userLoggedIn && 
+            <div>
+              <VStack>
+                <label>Select 5-10 photos of your pet, preferably from different angles and without any other subjects.</label>
+                
+                <Input type="file" multiple accept="image/*" onChange={onImagesAdd} value={[]}/>
+              </VStack>
+
+              {/* {JSON.stringify(images)} */}
+
+              {imageUrls.map((item, index) => (
+                <VStack marginTop={"4"}>
+                  <Image src={item} width={250} height={250}/>
+                  <Button backgroundColor="red.300" color="black" onClick={() => removeImage(index)}>remove image</Button>
+                </VStack>
+              ))}
+
+              <VStack>
+                <label>Prompts</label>
+                <Textarea type="text" placeholder="my pet sitting majestically on a mountain" width='200%' onChange={(value) => setPrompts(value)}></Textarea>
+              </VStack>
             
-            <Input type="file" multiple accept="image/*" onChange={onImagesAdd} value={[]}/>
-          </VStack>
 
-          {/* {JSON.stringify(images)} */}
+              <Button disabled={loading || !supabase.auth.currentSession} onClick={() => uploadThenCheckout()}>Proceed to checkout</Button>
 
-          {imageUrls.map((item, index) => (
-            <VStack marginTop={"4"}>
-              <Image src={item} width={250} height={250}/>
-              <Button backgroundColor="red.300" color="black" onClick={() => removeImage(index)}>remove image</Button>
-            </VStack>
-          ))}
+            </div>
+          }
 
-          <VStack>
-            <label>Name</label>
-            <Input type="text" onChange={(value) => setName(value)}></Input>
-          </VStack>
-
-          <VStack>
-            <label>Email</label>
-            <Input type="text" onChange={(value) => setEmail(value)}></Input>
-          </VStack>
-
-          <VStack>
-            <label>Prompts</label>
-            <Textarea type="text" placeholder="my pet sitting majestically on a mountain" width='200%' onChange={(value) => setPrompts(value)}></Textarea>
-          </VStack>
-         
-
-          <Button onClick={() => uploadThenCheckout()}>Proceed to checkout</Button>
 
           <Text>feedback? email me at vijay@longlaketech.com</Text>
       </main>
