@@ -5,9 +5,10 @@ type Data = {
   name: string
 }
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
+  console.log("hello.ts received request");
   res.status(200).json({ name: 'John Doe' })
 }

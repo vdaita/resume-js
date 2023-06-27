@@ -173,60 +173,64 @@ export default function Home() {
     return true;
   }
 
-  let uploadThenCheckout = async () => {
-
-    // first, validate the forms
-    if(images.length < 5 || prompts.length <= 0){ 
-      console.log(imageUrls, imageUrls.length, prompts.length)
-      toast({
-        title: 'Please fill out all parts of the form before submitting. You may need to add more images.',
-        description: '',
-        status: 'error',
-        duration: 2000,
-        isClosable: true
-      })
-      return false;
-    }
-
-    setLoading(true);
-
-    // first, upload the images
-    let bucketId = await generateBucketId(8);
-    let uploadWorked = await uploadFilesToSupabase(bucketId, images);
-    if(!uploadWorked){
-      setLoading(false);
-      return;
-    }
-    // then, save the other parts of the request
-    console.log("prompts: ", prompts);
-    let recordCreationWorked = await createNewRecordInSupabase(bucketId, prompts);
-    if(!recordCreationWorked){
-      setLoading(false);
-      return;
-    }
-
-    toast({
-      title: 'File upload successful!',
-      description: 'Your files were successfully uploaded for processing',
-      status: 'success',
-      duration: 2000,
-      isClosable: true
-    })
-
-    // then, send the user to the checkout flow
-    const checkoutProcessSucceeded = await processCheckout(bucketId);
-    if(!checkoutProcessSucceeded){
-      toast({
-        title: 'Loading payment interface unsuccessful',
-        description: 'Loading your payment interface was unsuccessful. Please email support with the following code: ' + bucketId,
-        status: 'error',
-        duration: 30000,
-        isClosable: true
-      })
-      return setLoading(false);
-    }
-    setLoading(false);
+  let uploadThenCheckout = async() => {
+    await fetch("/api/payment");
   }
+
+  // let uploadThenCheckout = async () => {
+
+  //   // first, validate the forms
+  //   if(images.length < 5 || prompts.length <= 0){ 
+  //     console.log(imageUrls, imageUrls.length, prompts.length)
+  //     toast({
+  //       title: 'Please fill out all parts of the form before submitting. You may need to add more images.',
+  //       description: '',
+  //       status: 'error',
+  //       duration: 2000,
+  //       isClosable: true
+  //     })
+  //     return false;
+  //   }
+
+  //   setLoading(true);
+
+  //   // first, upload the images
+  //   let bucketId = await generateBucketId(8);
+  //   let uploadWorked = await uploadFilesToSupabase(bucketId, images);
+  //   if(!uploadWorked){
+  //     setLoading(false);
+  //     return;
+  //   }
+  //   // then, save the other parts of the request
+  //   console.log("prompts: ", prompts);
+  //   let recordCreationWorked = await createNewRecordInSupabase(bucketId, prompts);
+  //   if(!recordCreationWorked){
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   toast({
+  //     title: 'File upload successful!',
+  //     description: 'Your files were successfully uploaded for processing',
+  //     status: 'success',
+  //     duration: 2000,
+  //     isClosable: true
+  //   })
+
+  //   // then, send the user to the checkout flow
+  //   const checkoutProcessSucceeded = await processCheckout(bucketId);
+  //   if(!checkoutProcessSucceeded){
+  //     toast({
+  //       title: 'Loading payment interface unsuccessful',
+  //       description: 'Loading your payment interface was unsuccessful. Please email support with the following code: ' + bucketId,
+  //       status: 'error',
+  //       duration: 30000,
+  //       isClosable: true
+  //     })
+  //     return setLoading(false);
+  //   }
+  //   setLoading(false);
+  // }
 
   return (
     <>
