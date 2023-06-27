@@ -2,12 +2,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import stripe from 'stripe';
 
-const stripeInstance = new stripe("pk_test_51Kb55ZK7c7Mb50VzqCqKpw8CKE2OaOaN6dXX9CSFOESTYCO8XzzYAyR3AKfy1T2wdh246mwmWc1xHDW0MxUQej6j00gzQGymvF", {
+const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: '2022-11-15'
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    console.log("Request received by /api/payment", req.body);
     const supabaseId = req.body.supabaseId;
+    console.log("received request from frontend: ", req.body, supabaseId);
     const session = await stripeInstance.checkout.sessions.create({
         mode: 'payment',
         success_url: 'https://localhost:3000/checkout_completed/success',

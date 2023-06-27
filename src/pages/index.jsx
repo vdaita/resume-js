@@ -76,7 +76,7 @@ export default function Home() {
       fileUrls = filesUrls.splice(0, 10);
     }
 
-    setImages([...e.target.files]);
+    setImages(files);
     setImageUrls(fileUrls);
   }
 
@@ -146,13 +146,47 @@ export default function Home() {
     return {data, error};
   }
 
-  let processCheckout = async () => {
-    const { data } = await axios.get(`/api/payment`)
+  let processCheckout = async (bucketId) => {
+
+    const res = await fetch("/api/payment", {
+      method: "POST",
+      body: {supabaseId: bucketId},
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      })
+    })
+    console.log(res);
+    if(!res.ok){
+      return false;
+    }
+
+    const data = await res.json();
     const stripe = await loadStripe(); // process.env.NEXT_PUBLIC_STRIPE_KEY
-    await stripe.redirectToCheckout({sessionId: data.id});
+    const stripeRes = await stripe.redirectToCheckout({sessionId: data.id});
+    
+    console.log(stripeRes);
+    if(!stripeRes.ok){
+      return false;
+    }
+
+    return true;
   }
 
   let uploadThenCheckout = async () => {
+
+    // first, validate the forms
+    if(images.length < 5 || prompts.length <= 0){ 
+      console.log(imageUrls, imageUrls.length, prompts.length)
+      toast({
+        title: 'Please fill out all parts of the form before submitting. You may need to add more images.',
+        description: '',
+        status: 'error',
+        duration: 2000,
+        isClosable: true
+      })
+      return false;
+    }
 
     setLoading(true);
 
@@ -160,12 +194,14 @@ export default function Home() {
     let bucketId = await generateBucketId(8);
     let uploadWorked = await uploadFilesToSupabase(bucketId, images);
     if(!uploadWorked){
+      setLoading(false);
       return;
     }
     // then, save the other parts of the request
     console.log("prompts: ", prompts);
     let recordCreationWorked = await createNewRecordInSupabase(bucketId, prompts);
     if(!recordCreationWorked){
+      setLoading(false);
       return;
     }
 
@@ -178,8 +214,17 @@ export default function Home() {
     })
 
     // then, send the user to the checkout flow
-    await processCheckout();
-
+    const checkoutProcessSucceeded = await processCheckout(bucketId);
+    if(!checkoutProcessSucceeded){
+      toast({
+        title: 'Loading payment interface unsuccessful',
+        description: 'Loading your payment interface was unsuccessful. Please email support with the following code: ' + bucketId,
+        status: 'error',
+        duration: 30000,
+        isClosable: true
+      })
+      return setLoading(false);
+    }
     setLoading(false);
   }
 
@@ -224,7 +269,7 @@ export default function Home() {
 
               <VStack marginTop="8">
                 <label>Prompts</label>
-                <Textarea type="text" placeholder="my pet sitting majestically on a mountain" width='200%' onChange={(event) => setPrompts(event.target.value)}></Textarea>
+                <Textarea type="text" placeholder="my pet sitting majestically on a mountain" width='100%' onChange={(event) => setPrompts(event.target.value)}></Textarea>
                 <Button marginTop="4" disabled={loading || !supabase.auth.currentSession} onClick={() => uploadThenCheckout()}>Proceed to checkout</Button>
                 {loading && <Spinner/>}
               </VStack>
