@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
 import {createClient} from '@supabase/supabase-js';
-import { Button, ButtonGroup, Textarea, VStack, Input, Heading, Text, useToast} from '@chakra-ui/react';
+import { Button, ButtonGroup, Textarea, VStack, Input, Heading, Text, Spinner, useToast} from '@chakra-ui/react';
 import axios from "axios";
 import { Auth, ThemeSupa } from '@supabase/auth-ui-react';
 import { loadStripe } from '@stripe/stripe-js';
@@ -92,16 +92,18 @@ export default function Home() {
     return true;
   }
 
-  let createNewRecordInSupabase = async(bucketId, name, email, prompts) => {
+  let createNewRecordInSupabase = async(bucketId, prompts) => {
+      const {data: {user}} = await supabase.auth.getUser();
       const {data, error} = await supabase
-        .from("records")
+        .from("requests")
         .insert({
           id: bucketId,
-          name: name,
-          email: email,
+          user_id: user.id,
+          email: user.email,
           prompts: {"data": prompts.split("\n")}
         });
       if(error){
+        console.log(error);
         displayUploadError();
         return false;
       }
@@ -161,10 +163,20 @@ export default function Home() {
       return;
     }
     // then, save the other parts of the request
-    let recordCreationWorked = await createNewRecordInSupabase(bucketId, name, email, prompts);
+    console.log("prompts: ", prompts);
+    let recordCreationWorked = await createNewRecordInSupabase(bucketId, prompts);
     if(!recordCreationWorked){
       return;
     }
+
+    toast({
+      title: 'File upload successful!',
+      description: 'Your files were successfully uploaded for processing',
+      status: 'success',
+      duration: 2000,
+      isClosable: true
+    })
+
     // then, send the user to the checkout flow
     await processCheckout();
 
@@ -210,14 +222,14 @@ export default function Home() {
                 </VStack>
               ))}
 
-              <VStack>
+              <VStack marginTop="8">
                 <label>Prompts</label>
-                <Textarea type="text" placeholder="my pet sitting majestically on a mountain" width='200%' onChange={(value) => setPrompts(value)}></Textarea>
+                <Textarea type="text" placeholder="my pet sitting majestically on a mountain" width='200%' onChange={(event) => setPrompts(event.target.value)}></Textarea>
+                <Button marginTop="4" disabled={loading || !supabase.auth.currentSession} onClick={() => uploadThenCheckout()}>Proceed to checkout</Button>
+                {loading && <Spinner/>}
               </VStack>
             
-
-              <Button disabled={loading || !supabase.auth.currentSession} onClick={() => uploadThenCheckout()}>Proceed to checkout</Button>
-
+                
             </div>
           }
 
