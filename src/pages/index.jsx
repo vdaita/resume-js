@@ -11,6 +11,7 @@ import { loadStripe } from '@stripe/stripe-js';
 
 const inter = Inter({ subsets: ['latin'] })
 const supabase = createClient('https://fmyzoqfdmuxtujffwngp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZteXpvcWZkbXV4dHVqZmZ3bmdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzM4Mjg4ODAsImV4cCI6MTk4OTQwNDg4MH0.5Ie-OTM75T7fig6Or2rtp9yJP_izV9zGmzBzPnv69dc');
+const STRIPE_PUBLIC = "pk_test_51Kb55ZK7c7Mb50VzqCqKpw8CKE2OaOaN6dXX9CSFOESTYCO8XzzYAyR3AKfy1T2wdh246mwmWc1xHDW0MxUQej6j00gzQGymvF";
 
 export default function Home() {
 
@@ -52,7 +53,7 @@ export default function Home() {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
       counter += 1;
     }
-    return uid + "/" + Date.now().toString() + result;
+    return uid + "/" + result;
   }
 
   let onImagesAdd = (e) => {
@@ -150,19 +151,20 @@ export default function Home() {
 
     const res = await fetch("/api/payment", {
       method: "POST",
-      body: {supabaseId: bucketId},
+      body: JSON.stringify({supabaseId: bucketId}),
       headers: new Headers({
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Authorization': 'Bearer ' + STRIPE_PUBLIC
       })
     })
-    console.log(res);
+    console.log('Fetched session id from backend: ', res);
     if(!res.ok){
       return false;
     }
 
     const data = await res.json();
-    const stripe = await loadStripe(); // process.env.NEXT_PUBLIC_STRIPE_KEY
+    const stripe = await loadStripe(STRIPE_PUBLIC); // process.env.NEXT_PUBLIC_STRIPE_KEY
     const stripeRes = await stripe.redirectToCheckout({sessionId: data.id});
     
     console.log(stripeRes);
@@ -173,64 +175,84 @@ export default function Home() {
     return true;
   }
 
-  let uploadThenCheckout = async() => {
-    await fetch("/api/payment");
-  }
-
-  // let uploadThenCheckout = async () => {
-
-  //   // first, validate the forms
-  //   if(images.length < 5 || prompts.length <= 0){ 
-  //     console.log(imageUrls, imageUrls.length, prompts.length)
-  //     toast({
-  //       title: 'Please fill out all parts of the form before submitting. You may need to add more images.',
-  //       description: '',
-  //       status: 'error',
-  //       duration: 2000,
-  //       isClosable: true
+  // test version of uploadThenCheckout
+  // let uploadThenCheckout = async() => { 
+  //   // await fetch("/api/payment");
+  //   let testBucketId = await generateBucketId(8);
+  //   console.log("making request with testBucketId: " + testBucketId);
+  //   // const res = await fetch("/api/hello", {
+  //   //   body: {supabaseId: testBucketId},
+  //   //   method: 'POST',
+  //   //   headers: new Headers({
+  //   //     'Content-Type': 'application/json',
+  //   //     'Accept': 'application/json'
+  //   //   })
+  //   // })
+  //   const res = await fetch("/api/payment", {
+  //     body: JSON.stringify({supabaseId: testBucketId}),
+  //     method: 'POST',
+  //     headers: new Headers({
+  //       'Content-Type': 'application/json',
+  //       'Accept': 'application/json'
   //     })
-  //     return false;
-  //   }
-
-  //   setLoading(true);
-
-  //   // first, upload the images
-  //   let bucketId = await generateBucketId(8);
-  //   let uploadWorked = await uploadFilesToSupabase(bucketId, images);
-  //   if(!uploadWorked){
-  //     setLoading(false);
-  //     return;
-  //   }
-  //   // then, save the other parts of the request
-  //   console.log("prompts: ", prompts);
-  //   let recordCreationWorked = await createNewRecordInSupabase(bucketId, prompts);
-  //   if(!recordCreationWorked){
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   toast({
-  //     title: 'File upload successful!',
-  //     description: 'Your files were successfully uploaded for processing',
-  //     status: 'success',
-  //     duration: 2000,
-  //     isClosable: true
-  //   })
-
-  //   // then, send the user to the checkout flow
-  //   const checkoutProcessSucceeded = await processCheckout(bucketId);
-  //   if(!checkoutProcessSucceeded){
-  //     toast({
-  //       title: 'Loading payment interface unsuccessful',
-  //       description: 'Loading your payment interface was unsuccessful. Please email support with the following code: ' + bucketId,
-  //       status: 'error',
-  //       duration: 30000,
-  //       isClosable: true
-  //     })
-  //     return setLoading(false);
-  //   }
-  //   setLoading(false);
+  //   });
+  //   console.log(res);
   // }
+
+  let uploadThenCheckout = async () => {
+
+    // first, validate the forms
+    if(images.length < 5 || prompts.length <= 0){ 
+      console.log(imageUrls, imageUrls.length, prompts.length)
+      toast({
+        title: 'Please fill out all parts of the form before submitting. You may need to add more images.',
+        description: '',
+        status: 'error',
+        duration: 2000,
+        isClosable: true
+      })
+      return false;
+    }
+
+    setLoading(true);
+
+    // first, upload the images
+    let bucketId = await generateBucketId(7);
+    let uploadWorked = await uploadFilesToSupabase(bucketId, images);
+    if(!uploadWorked){
+      setLoading(false);
+      return;
+    }
+    // then, save the other parts of the request
+    console.log("prompts: ", prompts);
+    let recordCreationWorked = await createNewRecordInSupabase(bucketId, prompts);
+    if(!recordCreationWorked){
+      setLoading(false);
+      return;
+    }
+
+    toast({
+      title: 'File upload successful!',
+      description: 'Your files were successfully uploaded for processing',
+      status: 'success',
+      duration: 2000,
+      isClosable: true
+    })
+
+    // then, send the user to the checkout flow
+    const checkoutProcessSucceeded = await processCheckout(bucketId);
+    if(!checkoutProcessSucceeded){
+      toast({
+        title: 'Loading payment interface unsuccessful',
+        description: 'Loading your payment interface was unsuccessful. Please email support with the following code: ' + bucketId,
+        status: 'error',
+        duration: 30000,
+        isClosable: true
+      })
+      return setLoading(false);
+    }
+    setLoading(false);
+  }
 
   return (
     <>
@@ -274,7 +296,7 @@ export default function Home() {
               <VStack marginTop="8">
                 <label>Prompts</label>
                 <Textarea type="text" placeholder="my pet sitting majestically on a mountain" width='100%' onChange={(event) => setPrompts(event.target.value)}></Textarea>
-                <Button marginTop="4" disabled={loading || !supabase.auth.currentSession} onClick={() => uploadThenCheckout()}>Proceed to checkout</Button>
+                {!loading && <Button marginTop="4" onClick={() => uploadThenCheckout()}>Proceed to checkout</Button>}
                 {loading && <Spinner/>}
               </VStack>
             
