@@ -1,7 +1,7 @@
-import { serve } from 'std/server'
+import { serve } from 'https://deno.land/std@0.192.0/http/server.ts'
 
 // Import via bare specifier thanks to the import_map.json file.
-import Stripe from 'stripe'
+import Stripe from 'https://esm.sh/stripe@12.10.0'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_API_KEY') as string, {
@@ -38,7 +38,7 @@ serve(async (request) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       // Create client with Auth context of the user that called the function.
       // This way your row-level-security (RLS) policies are applied.
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+      { global: { headers: { Authorization: request.headers.get('Authorization')! } } }
     )
 
     const bucketId = receivedEvent.data.object["custom_fields"][0]["label"]["custom"];
