@@ -16,8 +16,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log("received request from frontend: ", req.body, supabaseId);
     const session = await stripeInstance.checkout.sessions.create({
         mode: 'payment',
-        success_url: 'https://localhost:3000/checkout_completed/success',
-        cancel_url: 'https://localhost:3000/checkout_completed/failure',
+        success_url: 'https://localhost:3000/cksuccess',
+        cancel_url: 'https://localhost:3000/ckcancelled',
         line_items: [
             {
                 price: 'price_1NNHfLK7c7Mb50VzYRrAy30o',

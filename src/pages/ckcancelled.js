@@ -8,7 +8,7 @@ import { Button, ButtonGroup, Textarea, VStack, Input, Heading, Text, useToast} 
 export default function Failure() {
     return (
         <main className={styles.main}>
-            Unfortuately, your payment could not be processed. Please check your payment details or email support if issue persists.
+            Your payment was cancelled. Visit our homepage to resubmit our form or email support with any questions you have.
         </main>
     )
 }
