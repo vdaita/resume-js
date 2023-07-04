@@ -28,11 +28,11 @@ export default function ViewRequests() {
       for(var i = 0; i < data.length; i++){
         data.images = [];
         for(var j = 0; j < data.images; j++){
-          
+
         }
       }
     }
-  }
+  } 
 
   let getCurrentUserId = async () => {
     const { data: {user} } = await supabase.auth.getUser();
