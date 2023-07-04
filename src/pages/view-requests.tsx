@@ -3,7 +3,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
-import supabase from '@/utils/supabase';
+import supabase from '@/utils/supabase.js';
 import { Button, ButtonGroup, Textarea, VStack, Input, Heading, Text, Spinner, Card, CardHeader, CardBody, CardFooter, Badge, useToast} from '@chakra-ui/react';
 import axios from "axios";
 
