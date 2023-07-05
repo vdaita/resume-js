@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             supabaseId: supabaseId
         }
     })
-
+    console.log("payment session created: ", session);
     res.send({
         id: session.id
     });

@@ -11,8 +11,9 @@ import { loadStripe } from '@stripe/stripe-js';
 
 const inter = Inter({ subsets: ['latin'] })
 const supabase = createClient('https://fmyzoqfdmuxtujffwngp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZteXpvcWZkbXV4dHVqZmZ3bmdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzM4Mjg4ODAsImV4cCI6MTk4OTQwNDg4MH0.5Ie-OTM75T7fig6Or2rtp9yJP_izV9zGmzBzPnv69dc');
+
 // const STRIPE_PUBLIC = "pk_test_51Kb55ZK7c7Mb50VzqCqKpw8CKE2OaOaN6dXX9CSFOESTYCO8XzzYAyR3AKfy1T2wdh246mwmWc1xHDW0MxUQej6j00gzQGymvF";
-const STRIPE_PUBLIC = process.env.STRIPE_PUBLIC;
+const STRIPE_PUBLIC = process.env.NEXT_PUBLIC_STRIPE_PUBLIC;
 
 export default function Home() {
 
@@ -30,6 +31,7 @@ export default function Home() {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
 
   useEffect(() => {
+    // console.log("stripe public: ", STRIPE_PUBLIC);
     supabase.auth.onAuthStateChange((event, session) => {
       console.log(event, session);
       if(session){
@@ -165,7 +167,13 @@ export default function Home() {
     }
 
     const data = await res.json();
+
+    // console.log("data: ", data);
+
     const stripe = await loadStripe(STRIPE_PUBLIC); // process.env.NEXT_PUBLIC_STRIPE_KEY
+
+    // console.log("stripe instance: ", stripe);
+
     const stripeRes = await stripe.redirectToCheckout({sessionId: data.id});
 
     console.log(stripeRes);
