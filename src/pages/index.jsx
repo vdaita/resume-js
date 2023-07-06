@@ -325,13 +325,16 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-          <Flex>
-            <Spacer/>
-            <Box>
-              <p>{user.email}</p>
-              <Button backgroundColor="red.200" color="white" onClick={() => supabase.auth.signOut()}>Sign out</Button>
-            </Box>
-          </Flex>
+          {user && 
+            <Flex>
+              <Spacer/>
+              <Box>
+                <p>{user.email}</p>
+                <Button backgroundColor="red.200" color="white" onClick={() => supabase.auth.signOut()}>Sign out</Button>
+              </Box>
+            </Flex>
+          }
+
         
           <Heading>petform</Heading>
 
