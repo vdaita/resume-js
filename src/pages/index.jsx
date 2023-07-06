@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
 import {createClient} from '@supabase/supabase-js';
-import { Button, ButtonGroup, Textarea, VStack, Input, Heading, Text, Spinner, useToast} from '@chakra-ui/react';
+import { Button, SimpleGrid, ButtonGroup, Textarea, VStack, Input, Heading, Text, Spinner, Flex, Spacer, Box, useToast} from '@chakra-ui/react';
 import axios from "axios";
 import { Auth, ThemeSupa } from '@supabase/auth-ui-react';
 import { loadStripe } from '@stripe/stripe-js';
@@ -23,18 +23,27 @@ export default function Home() {
 
   const [images, setImages] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
+  const [paymentFailed, setPaymentFailed] = useState(false);
+
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
 
   const toast = useToast();
 
   const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [user, setUser] = useState(false);
 
   useEffect(() => {
     // console.log("stripe public: ", STRIPE_PUBLIC);
     supabase.auth.onAuthStateChange((event, session) => {
       console.log(event, session);
+      if(event == 'PASSWORD_RECOVERY'){
+        setPasswordRecovery(true);
+      }
       if(session){
+        setUser(session.user);
         setUserLoggedIn(true);
       } else {
         setUserLoggedIn(false);
@@ -208,6 +217,12 @@ export default function Home() {
   //   console.log(res);
   // }
 
+  function getColor(value){
+    //value from 0 to 1
+    var hue=((1-value)*120).toString(10);
+    return ["hsl(",hue,",100%,50%)"].join("");
+  }
+
   let uploadThenCheckout = async () => {
 
     // first, validate the forms
@@ -251,9 +266,10 @@ export default function Home() {
     // then, send the user to the checkout flow
     const checkoutProcessSucceeded = await processCheckout(bucketId);
     if(!checkoutProcessSucceeded){
+      setPaymentFailed(bucketId);
       toast({
         title: 'Loading payment interface unsuccessful',
-        description: 'Loading your payment interface was unsuccessful. Please email support with the following code: ' + bucketId,
+        description: 'Loading your payment interface was unsuccessful. Please email support using the provided button.',
         status: 'error',
         duration: 30000,
         isClosable: true
@@ -261,6 +277,38 @@ export default function Home() {
       return setLoading(false);
     }
     setLoading(false);
+  }
+
+  const resetPassword = async () => {
+    const {data, error} = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    
+    if(error){
+      toast({
+        title: 'Unfortunately, your password reset failed',
+        description: '',
+        status: 'error',
+        duration: 2000,
+        isClosable: true
+      });
+    } else {
+      toast({
+        title: 'Password reset successful! Page will refresh soon.',
+        description: '',
+        status: 'success',
+        duration: 2000,
+        isClosable: true
+      });
+      setTimeout(window.location.replace("https://petform.longlaketech.com"), 1000);
+    }
+  }
+
+  if(passwordRecovery){
+    <main className={styles.main}>
+      <Input placeholder="new password" onChange={(e) => setNewPassword(e.target.value)}></Input>
+      <Button onClick={() => resetPassword()}>Reset password</Button>
+    </main>
   }
 
   return (
@@ -272,6 +320,14 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
+          <Flex>
+            <Spacer/>
+            <Box>
+              <p>{user.email}</p>
+              <Button backgroundColor="red.200" color="white" onClick={() => supabase.auth.signOut()}>Sign out</Button>
+            </Box>
+          </Flex>
+        
           <Heading>petform</Heading>
 
           {!userLoggedIn &&
@@ -289,24 +345,29 @@ export default function Home() {
             <div>
               <VStack>
                 <label>Select 5-10 photos of your pet, preferably from different angles and without any other subjects.</label>
-
+                <Box backgroundColor={getColor(images.length > 5 ? 0 : (5 - images.length)/5)} textColor={"#000000"} borderRadius={3} padding={3}>
+                  <p>{images.length <= 5 ? 5 - images.length : 0} images remaining</p>
+                </Box>
                 <Input type="file" multiple accept="image/*" onChange={onImagesAdd} value={[]}/>
               </VStack>
 
               {/* {JSON.stringify(images)} */}
 
-              {imageUrls.map((item, index) => (
-                <VStack marginTop={"4"}>
-                  <Image src={item} width={250} height={250}/>
-                  <Button backgroundColor="red.300" color="black" onClick={() => removeImage(index)}>remove image</Button>
-                </VStack>
-              ))}
+              <SimpleGrid columns={3} spacing={10}>
+                {imageUrls.map((item, index) => (
+                  <VStack marginTop={"4"}>
+                    <Image src={item} width={250} height={250}/>
+                    <Button backgroundColor="red.300" color="black" onClick={() => removeImage(index)}>remove image</Button>
+                  </VStack>
+                ))}
+              </SimpleGrid>
 
               <VStack marginTop="8">
                 <label>Prompts</label>
                 <Textarea type="text" value={prompts} placeholder="" width='100%' onChange={(event) => setPrompts(event.target.value)}></Textarea>
                 {!loading && <Button marginTop="4" onClick={() => uploadThenCheckout()}>Proceed to checkout</Button>}
                 {loading && <Spinner/>}
+                {paymentFailed && <a href={"mailto:vijay@longlaketech.com?subject=Petform Payment Failed&body=Payment code " + paymentFailed}>Email support with code (send as is)</a>}
               </VStack>
 
 
