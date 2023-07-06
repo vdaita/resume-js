@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         cancel_url: 'http://localhost:3000/ckcancelled',
         line_items: [
             {
-                price: 'price_1NQxATK7c7Mb50Vz09SqksfC',
+                price: process.env.STRIPE_PRICE_ID!,
                 quantity: 1
             }
         ],
