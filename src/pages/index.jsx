@@ -47,6 +47,7 @@ export default function Home() {
         setUser(session.user);
         setUserLoggedIn(true);
       } else {
+        setUser(undefined);
         setUserLoggedIn(false);
       }
     })
