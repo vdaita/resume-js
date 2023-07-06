@@ -326,16 +326,17 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={styles.main}>
-          {user && 
-            <Flex>
-              <Spacer/>
-              <Box>
-                <p>{user.email}</p>
-                <Button backgroundColor="red.200" color="white" onClick={() => supabase.auth.signOut()}>Sign out</Button>
-              </Box>
-            </Flex>
-          }
 
+          <Flex pos="fixed" top="1rem" right="1rem">
+            {user && 
+              <Box>
+                {/* <HStack> */}
+                  {user.email}
+                  <Button backgroundColor="red.200" margin={2} color="white" onClick={() => supabase.auth.signOut()}>Sign out</Button>
+                {/* </HStack> */}
+              </Box>
+            }
+          </Flex>
         
           <Heading>petform</Heading>
 
@@ -354,8 +355,8 @@ export default function Home() {
             <div>
               <VStack>
                 <label>Select 5-10 photos of your pet, preferably from different angles and without any other subjects.</label>
-                <Box backgroundColor={getColor(images.length > 5 ? 0 : (5 - images.length)/5)} textColor={"#000000"} borderRadius={3} padding={3}>
-                  <p>{images.length <= 5 ? 5 - images.length : 0} images remaining</p>
+                <Box backgroundColor={getColor(images.length >= 10 ? 0 : (10 - images.length)/10)} textColor={"#000000"} borderRadius={3} padding={3}>
+                  <p>{images.length <= 5 ? ((5 - images.length).toString() + " images remaining") : "You can add up to 10 images."}</p>
                 </Box>
                 <Input type="file" multiple accept="image/*" onChange={onImagesAdd} value={[]}/>
               </VStack>
@@ -374,7 +375,7 @@ export default function Home() {
               <VStack marginTop="8">
                 <label>Prompts</label>
                 <Textarea type="text" value={prompts} placeholder="my pet sitting majestically on a mountain, my pet in a suit" width='100%' onChange={(event) => setPrompts(event.target.value)}></Textarea>
-                {!loading && <Button marginTop="4" onClick={() => uploadThenCheckout()}>Proceed to checkout</Button>}
+                {!loading && <Button marginTop="4" onClick={() => uploadThenCheckout()}>Proceed to checkout (via Stripe)</Button>}
                 {loading && <Spinner/>}
                 {paymentFailed && <a href={"mailto:vijay@longlaketech.com?subject=Petform Payment Failed&body=Payment code " + paymentFailed}>Email support with code (send as is)</a>}
               </VStack>
