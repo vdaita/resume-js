@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
 import {createClient} from '@supabase/supabase-js';
-import { Button, SimpleGrid, ButtonGroup, Textarea, VStack, Input, Heading, Text, Spinner, Flex, Spacer, Box, useToast} from '@chakra-ui/react';
+import { Button, SimpleGrid, ButtonGroup, Textarea, VStack, HStack, Input, Heading, Text, Spinner, Flex, Spacer, Box, useToast} from '@chakra-ui/react';
 import axios from "axios";
 import { Auth, ThemeSupa } from '@supabase/auth-ui-react';
 import { loadStripe } from '@stripe/stripe-js';
@@ -308,8 +308,10 @@ export default function Home() {
   if(passwordRecovery){
     return (
       <main className={styles.main}>
-        <Input placeholder="new password" onChange={(e) => setNewPassword(e.target.value)}></Input>
-        <Button onClick={() => resetPassword()}>Reset password</Button>
+        <HStack>
+          <Input type={'password'} placeholder="new password" onChange={(e) => setNewPassword(e.target.value)}></Input>
+          <Button onClick={() => resetPassword()}>Reset password</Button>
+        </HStack>
       </main>
     )
   }
