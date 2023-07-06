@@ -19,7 +19,7 @@ export default function Home() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [prompts, setPrompts] = useState("my pet sitting majestically on a mountain, my pet in a suit");
+  const [prompts, setPrompts] = useState("");
 
   const [images, setImages] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
@@ -373,7 +373,7 @@ export default function Home() {
 
               <VStack marginTop="8">
                 <label>Prompts</label>
-                <Textarea type="text" value={prompts} placeholder="" width='100%' onChange={(event) => setPrompts(event.target.value)}></Textarea>
+                <Textarea type="text" value={prompts} placeholder="my pet sitting majestically on a mountain, my pet in a suit" width='100%' onChange={(event) => setPrompts(event.target.value)}></Textarea>
                 {!loading && <Button marginTop="4" onClick={() => uploadThenCheckout()}>Proceed to checkout</Button>}
                 {loading && <Spinner/>}
                 {paymentFailed && <a href={"mailto:vijay@longlaketech.com?subject=Petform Payment Failed&body=Payment code " + paymentFailed}>Email support with code (send as is)</a>}
