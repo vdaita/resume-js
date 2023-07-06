@@ -40,6 +40,7 @@ export default function Home() {
     supabase.auth.onAuthStateChange((event, session) => {
       console.log(event, session);
       if(event == 'PASSWORD_RECOVERY'){
+        console.log("Currently in password recovery mode.");
         setPasswordRecovery(true);
       }
       if(session){
@@ -305,10 +306,12 @@ export default function Home() {
   }
 
   if(passwordRecovery){
-    <main className={styles.main}>
-      <Input placeholder="new password" onChange={(e) => setNewPassword(e.target.value)}></Input>
-      <Button onClick={() => resetPassword()}>Reset password</Button>
-    </main>
+    return (
+      <main className={styles.main}>
+        <Input placeholder="new password" onChange={(e) => setNewPassword(e.target.value)}></Input>
+        <Button onClick={() => resetPassword()}>Reset password</Button>
+      </main>
+    )
   }
 
   return (
