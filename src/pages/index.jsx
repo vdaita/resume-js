@@ -3,14 +3,15 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
-import {createClient} from '@supabase/supabase-js';
-import { Button, SimpleGrid, ButtonGroup, Textarea, VStack, HStack, Input, Heading, Text, Spinner, Flex, Spacer, Box, useToast} from '@chakra-ui/react';
+// import {createClient} from '@supabase/supabase-js';
+import supabase from '@/utils/supabase';
+import { Button, SimpleGrid, ButtonGroup, Textarea, VStack, HStack, Input, Heading, Text, Spinner, Flex, Spacer, Box, Link, useToast} from '@chakra-ui/react';
 import axios from "axios";
 import { Auth, ThemeSupa } from '@supabase/auth-ui-react';
 import { loadStripe } from '@stripe/stripe-js';
 
 const inter = Inter({ subsets: ['latin'] })
-const supabase = createClient('https://fmyzoqfdmuxtujffwngp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZteXpvcWZkbXV4dHVqZmZ3bmdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzM4Mjg4ODAsImV4cCI6MTk4OTQwNDg4MH0.5Ie-OTM75T7fig6Or2rtp9yJP_izV9zGmzBzPnv69dc');
+// const supabase = createClient('https://fmyzoqfdmuxtujffwngp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZteXpvcWZkbXV4dHVqZmZ3bmdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzM4Mjg4ODAsImV4cCI6MTk4OTQwNDg4MH0.5Ie-OTM75T7fig6Or2rtp9yJP_izV9zGmzBzPnv69dc');
 
 // const STRIPE_PUBLIC = "pk_test_51Kb55ZK7c7Mb50VzqCqKpw8CKE2OaOaN6dXX9CSFOESTYCO8XzzYAyR3AKfy1T2wdh246mwmWc1xHDW0MxUQej6j00gzQGymvF";
 const STRIPE_PUBLIC = process.env.NEXT_PUBLIC_STRIPE_PUBLIC;
@@ -19,7 +20,8 @@ export default function Home() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [prompts, setPrompts] = useState("");
+  const [prompts, setPrompts] = useState([]);
+  const [newPrompt, setNewPrompt] = useState("");
 
   const [images, setImages] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
@@ -110,7 +112,7 @@ export default function Home() {
         isClosable: true
       })
       files = files.splice(0, 10); // end is non-inclusive
-      fileUrls = filesUrls.splice(0, 10);
+      fileUrls = fileUrls.splice(0, 10);
     }
 
     setImages(files);
@@ -138,7 +140,7 @@ export default function Home() {
           user_id: user.id,
           email: user.email,
           watermarked_free_trial: isWatermarked,
-          prompts: {"data": prompts.split("\n")}
+          prompts: {"data": prompts}
         });
       if(error){
         console.log(error);
@@ -363,6 +365,27 @@ export default function Home() {
     }
   }
 
+  let addPrompt = () => {
+    if(newPrompt.length == 0){
+      toast({
+        title: 'Please write something in your new prompt.',
+        description: '',
+        status: 'error',
+        duration: 2000,
+        isClosable: true
+      });
+      return;
+    }
+    setPrompts([...prompts, newPrompt]);
+    setNewPrompt("");
+  }
+
+  let deletePrompt = (index) => {
+    let promptsCopy = [...prompts];
+    promptsCopy.splice(index, 1);
+    setPrompts(promptsCopy);
+  }
+
   if(passwordRecovery){
     return (
       <main className={styles.main}>
@@ -384,11 +407,12 @@ export default function Home() {
       </Head>
       <main className={styles.main}>
 
-          <Flex pos="fixed" top="1rem" right="1rem">
+          <Flex pos="absolute" top="1rem" right="1rem">
             {user && 
-              <Box>
+              <Box backgroundColor="black" padding={2} borderRadius={4}>
                 {/* <HStack> */}
                   {user.email} | {freeTrialUsed ? 'Free trial used' : ''}
+                  <Link href="/view-requests">View Past Requests</Link> |
                   <Button backgroundColor="red.200" margin={2} color="white" onClick={() => supabase.auth.signOut()}>Sign out</Button>
                 {/* </HStack> */}
               </Box>
@@ -410,30 +434,58 @@ export default function Home() {
           {userLoggedIn &&
             <div>
               <VStack>
-                <Heading>petform</Heading>
-                <label>Select 5-10 photos of your pet, preferably from different angles and without any other subjects.</label>
-                <Box backgroundColor={getColor(images.length >= 10 ? 0 : (10 - images.length)/10)} textColor={"#000000"} borderRadius={3} padding={3}>
-                  <p>{images.length < 5 ? ((5 - images.length).toString() + " images remaining") : "You can add up to 10 images."}</p>
-                </Box>
-                <Input type="file" multiple accept="image/*" onChange={onImagesAdd} value={[]}/>
+                <Heading margin={4}>petform</Heading>
+
               </VStack>
 
               {/* {JSON.stringify(images)} */}
 
-              <SimpleGrid columns={3} spacing={10}>
-                {imageUrls.map((item, index) => (
-                  <VStack marginTop={"4"} borderWidth={2} borderRadius={4} padding={4}>
-                    <Image style={{objectFit: "cover"}} src={item} sizes="" width={200} height={200}/>
-                    <HStack flex={1}>
-                      <Button style={{alignSelf: "flex-end"}} bottom="0rem" backgroundColor="red.300" color="black" onClick={() => removeImage(index)}>remove image</Button>
-                    </HStack>
-                  </VStack>
-                ))}
+              <SimpleGrid columns={2} spacing={10}>
+                <Box>
+                  <Box backgroundColor={getColor(images.length >= 10 ? 0 : (10 - images.length)/10)} textColor={"#000000"} borderRadius={3} padding={3}>
+                    {/* <p>{images.length < 5 ? ((5 - images.length).toString() + " images remaining") : "You can add up to 10 images."}</p> */}
+                    <p>Select 5-10 photos of your pet, preferably from different angles and without any other subjects.</p>
+                </Box>
+                </Box>
+
+
+                <Box>
+                  <Input type="file" multiple accept="image/*" onChange={onImagesAdd} value={[]}/>
+                    <SimpleGrid columns={3} spacing={10}>
+                    {imageUrls.map((item, index) => (
+                      <VStack marginTop={"4"} borderWidth={2} borderRadius={4} padding={4}>
+                        <Image style={{objectFit: "cover"}} src={item} sizes="" width={200} height={200}/>
+                        <HStack flex={1}>
+                          <Button style={{alignSelf: "flex-end"}} bottom="0rem" backgroundColor="red.300" color="black" onClick={() => removeImage(index)}>remove image</Button>
+                        </HStack>
+                      </VStack>
+                    ))}
+                  </SimpleGrid>
+                </Box>
+
+                <Box>
+                  <label>Prompts - what do you want the generated images to look like?</label>
+                </Box>
+                <Box>
+                  <Box overflowY="auto" maxHeight="300px">
+                    {/* <SimpleGrid> */}
+                      {prompts.map((item, index) => (
+                        <>
+                          <HStack margin={2} marginLeft={0} borderWidth={2} padding={2} borderRadius={4} width="fit-content">
+                            <Box width="200px">{item}</Box>
+                            <Button backgroundColor="red.200" onClick={() => deletePrompt(index)}>X</Button>
+                          </HStack>
+                        </>
+                      ))}
+                    {/* </SimpleGrid> */}
+                  </Box>
+                  <Textarea type="text" value={newPrompt} placeholder="my pet sitting majestically on a mountain, my pet in a suit" width='100%' onChange={(event) => setNewPrompt(event.target.value)}></Textarea>
+                  <Button onClick={() => addPrompt()} margin={2}>Add prompt</Button>
+                </Box>
               </SimpleGrid>
 
+
               <VStack marginTop="8">
-                <label>Prompts - what do you want the generated images to look like?</label>
-                <Textarea type="text" value={prompts} placeholder="my pet sitting majestically on a mountain, my pet in a suit" width='100%' onChange={(event) => setPrompts(event.target.value)}></Textarea>
                 <HStack>
                   {(!loading && !freeTrialUsed) && <Button marginTop="4"  onClick={() => uploadFreeTrial()}>Use your watermarked free trial</Button>}
                   {!loading && <Button marginTop="4" backgroundColor='blue.300' onClick={() => uploadThenCheckout()}>Proceed to checkout (via Stripe)</Button>}

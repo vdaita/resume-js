@@ -14,7 +14,8 @@ const supabase = createClient("https://fmyzoqfdmuxtujffwngp.supabase.co", proces
 export default async function handler(req, res){
   console.log("Webhook received req: ", req.body, req.method, req.body.data.object.metadata);
   const supabaseId = req.body.data.object.metadata.supabaseId;
-  supabase.from("requests").update({ payment_confirmed: true}).eq('id', supabaseId);
+  const {error} = await supabase.from("requests").update({ payment_confirmed: true}).eq('id', supabaseId);
+  console.log("update supabase error: ", error);
   res.status(200).end();
   // if(req.method == "POST"){
   //   const buf = await buffer(req);
