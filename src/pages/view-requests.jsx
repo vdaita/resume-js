@@ -10,13 +10,16 @@ import styles from '@/styles/Home.module.css'
 import supabase from '@/utils/supabase.js';
 import { Button, ButtonGroup, Textarea, VStack, Input, Heading, Text, Spinner, Card, CardHeader, CardBody, CardFooter, Badge, Link, useToast} from '@chakra-ui/react';
 import axios from "axios";
+import { loadStripe } from '@stripe/stripe-js';
+
+const STRIPE_PUBLIC = process.env.NEXT_PUBLIC_STRIPE_PUBLIC;
 
 export default function ViewRequests() {
   const [requests, setRequests] = useState([]);
 
   useEffect(() => {
     // load all the requests with this user's id
-
+    loadPreviousRequests();
   }, []);
 
   let loadPreviousRequests = async () => {
@@ -26,7 +29,34 @@ export default function ViewRequests() {
       .select()
       .eq('user_id', userId);
 
-    setRequests(data);
+    console.log("loadPreviousRequests: ", data, error, userId);
+
+    let requests = [];
+
+    for(var requestIndex = 0; requestIndex < data.length; requestIndex++){
+      let currentRequest = data[requestIndex];
+      let firstImage = await getFirstImage(currentRequest.id);
+      currentRequest.image = firstImage;
+      requests.push(currentRequest);
+    }
+
+    setRequests(requests);
+  }
+
+  let getFirstImage = async(id) => {
+    const {data, error} = await supabase.storage.from('user_images')
+      .list(id, {
+        limit: 1,
+        offset: 0
+      });
+    console.log("getFirstImage: ", id, data, error);
+    let image_url = id + "/" + data[0].name;
+    const signedUrl = await supabase.storage.from('user_images').createSignedUrls([image_url], 60);
+    if(signedUrl.error){
+      return false;
+    }
+    console.log("signedUrl: ", signedUrl.data[0].signedUrl);
+    return signedUrl.data[0].signedUrl;
   }
 
   let getUserId = async () => {
@@ -36,9 +66,6 @@ export default function ViewRequests() {
 
 
   let processCheckout = async (bucketId) => { // TODO: don't have two different processCheckout methods in seperate files
-
-    const STRIPE_PUBLIC = "pk_test_51Kb55ZK7c7Mb50VzqCqKpw8CKE2OaOaN6dXX9CSFOESTYCO8XzzYAyR3AKfy1T2wdh246mwmWc1xHDW0MxUQej6j00gzQGymvF";
-
 
     const res = await fetch("/api/payment", {
       method: "POST",
@@ -76,21 +103,22 @@ export default function ViewRequests() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main classType={styles.main}>
-        <Heading>petform</Heading>
-
-        <p>Unpaid requests are deleted after 30 days</p>
+        <Heading margin={4}>petform</Heading>
         {requests.map((item, index) => (
-          <Card>
-            <p>{item.prompts}</p>
-            <p>{item.created_at}</p>
+          <Card maxW='md' margin={4}>
+            <CardBody>
+              <Image width={250} height={250} src={item.image}/>
+              <p>{(new Date(item.created_at)).toUTCString()}</p>
 
-            {item.payment_completed && <Badge colorScheme='green'>Payment completed</Badge>}
-            {!item.payment_completed && <Badge colorScheme='red' onPress={() => processCheckout(item.id)}>Payment not completed - tap to complete.</Badge>}
+              {(!item.watermarked_free_trial && item.payment_confirmed) && <Badge margin={1} colorScheme='green'>Payment completed</Badge>}
+              {(!item.watermarked_free_trial && !item.payment_confirmed) && <Badge margin={1} colorScheme='red' onClick={() => processCheckout(item.id)}>Payment not completed - tap to complete</Badge>}
+
+              {(item.payment_confirmed && item.request_completed )&& <Badge margin={1} colorScheme='green'>Request fulfilled - check your email</Badge>}
+              {(item.payment_confirmed && !item.request_completed) && <Badge margin={1} colorScheme="yellow">Request in progress</Badge>}
+
+              {item.watermarked_free_trial && <Badge margin={1} colorScheme="blue">Free trial request</Badge>}
+            </CardBody>
             
-            {item.request_completed && <Badge colorScheme='green'>Request fulfilled - check your email.</Badge>}
-            {!item.request_completed && <Badge colorScheme="yellow">Request in progress.</Badge>}
-
-            {item.watermarked_free_trial && <Badge colorScheme="orange">Free trial request</Badge>}
           </Card>
         ))}
       </main>
