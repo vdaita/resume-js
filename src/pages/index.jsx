@@ -5,7 +5,7 @@ import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
 // import {createClient} from '@supabase/supabase-js';
 import supabase from '@/utils/supabase';
-import { Button, SimpleGrid, ButtonGroup, Textarea, VStack, HStack, Input, Heading, Text, Spinner, Flex, Spacer, Box, Link, useToast} from '@chakra-ui/react';
+import { Button, SimpleGrid, ButtonGroup, Textarea, Label, VStack, HStack, Input, Heading, Text, Spinner, Flex, Spacer, Box, Link, useToast} from '@chakra-ui/react';
 import axios from "axios";
 import { Auth, ThemeSupa } from '@supabase/auth-ui-react';
 import { loadStripe } from '@stripe/stripe-js';
@@ -26,6 +26,8 @@ export default function Home() {
   const [images, setImages] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
   const [paymentFailed, setPaymentFailed] = useState(false);
+
+  const inputBtnRef = React.useRef(null);
 
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -275,6 +277,8 @@ export default function Home() {
       // console.log(data, error);
     }
     setLoading(false);
+
+    setTimeout(window.location.replace("https://petform.longlaketech.com/cksuccess"), 1000);
   }
 
   let upload = async (isWatermarked) => {
@@ -407,9 +411,9 @@ export default function Home() {
       </Head>
       <main className={styles.main}>
 
-          <Flex pos="absolute" top="1rem" right="1rem">
+          <Flex top="1rem" right="1rem" alignSelf="end">
             {user && 
-              <Box backgroundColor="black" padding={2} borderRadius={4}>
+              <Box padding={2} borderRadius={4}>
                 {/* <HStack> */}
                   {user.email} | {freeTrialUsed ? 'Free trial used' : ''}
                   <Link href="/view-requests">View Past Requests</Link> |
@@ -435,7 +439,6 @@ export default function Home() {
             <div>
               <VStack>
                 <Heading margin={4}>petform</Heading>
-
               </VStack>
 
               {/* {JSON.stringify(images)} */}
@@ -450,13 +453,16 @@ export default function Home() {
 
 
                 <Box>
-                  <Input type="file" multiple accept="image/*" onChange={onImagesAdd} value={[]}/>
-                    <SimpleGrid columns={3} spacing={10}>
+                  <Input ref={inputBtnRef} style={{display: 'none'}} type="file" multiple accept="image/*" onChange={onImagesAdd} value={[]}/>
+                  <Button colorScheme='teal' variant='solid' onClick={() => inputBtnRef.current.click()}>
+                    Select files
+                  </Button>
+                    <SimpleGrid minChildWidth="150px" spacing={10}>
                     {imageUrls.map((item, index) => (
                       <VStack marginTop={"4"} borderWidth={2} borderRadius={4} padding={4}>
-                        <Image style={{objectFit: "cover"}} src={item} sizes="" width={200} height={200}/>
+                        <Image style={{objectFit: "cover"}} src={item} sizes="" width={140} height={140}/>
                         <HStack flex={1}>
-                          <Button style={{alignSelf: "flex-end"}} bottom="0rem" backgroundColor="red.300" color="black" onClick={() => removeImage(index)}>remove image</Button>
+                          <Button style={{alignSelf: "flex-end"}} bottom="0rem" color="black" onClick={() => removeImage(index)}>❌</Button>
                         </HStack>
                       </VStack>
                     ))}
@@ -464,17 +470,18 @@ export default function Home() {
                 </Box>
 
                 <Box>
-                  <label>Prompts - what do you want the generated images to look like?</label>
+                  <label>Prompts - what do you want the generated images to look like? Add as many as you like. </label>
                 </Box>
                 <Box>
                   <Box overflowY="auto" maxHeight="300px">
                     {/* <SimpleGrid> */}
                       {prompts.map((item, index) => (
                         <>
-                          <HStack margin={2} marginLeft={0} borderWidth={2} padding={2} borderRadius={4} width="fit-content">
-                            <Box width="200px">{item}</Box>
-                            <Button backgroundColor="red.200" onClick={() => deletePrompt(index)}>X</Button>
-                          </HStack>
+                          <Flex dir="row" margin={2} marginLeft={0} borderWidth={2} padding={2} borderRadius={4}>
+                            <Box>{item}</Box>
+                            <Spacer/>
+                            <Button pos="relative" alignSelf="self-end" backgroundColor="red.200" onClick={() => deletePrompt(index)}>X</Button>
+                          </Flex>
                         </>
                       ))}
                     {/* </SimpleGrid> */}
@@ -483,24 +490,22 @@ export default function Home() {
                   <Button onClick={() => addPrompt()} margin={2}>Add prompt</Button>
                 </Box>
               </SimpleGrid>
-
-
               <VStack marginTop="8">
                 <HStack>
-                  {(!loading && !freeTrialUsed) && <Button marginTop="4"  onClick={() => uploadFreeTrial()}>Use your watermarked free trial</Button>}
                   {!loading && <Button marginTop="4" backgroundColor='blue.300' onClick={() => uploadThenCheckout()}>Proceed to checkout (via Stripe)</Button>}
                   {loading && <Spinner/>}
                 </HStack>
-
+                {(!loading && !freeTrialUsed) && <Button marginTop="4"  onClick={() => uploadFreeTrial()}>Use your watermarked free trial</Button>}
                 {paymentFailed && <a color='blue.300' href={"mailto:vijay@longlaketech.com?subject=Petform Payment Failed&body=Payment code " + paymentFailed}>Email support with code (send as is)</a>}
               </VStack>
-
-
             </div>
           }
 
-
-          <Text>feedback? email me at vijay@longlaketech.com</Text>
+        <Box spacing={2}>
+          <Text>feedback? <Link href="mailto:vijay@longlaketech.com">email me at vijay@longlaketech.com</Link></Text>
+          <Link href="/terms-and-conditions">Terms and Conditions  </Link>
+          <Link href="/about"> About</Link>
+        </Box>
       </main>
     </>
   )
