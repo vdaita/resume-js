@@ -63,7 +63,8 @@ export default function Home() {
   }, []);
 
   let isFreeTrialUsed = async () => {
-    const {data, error} = await supabase.from("requests").select().eq("watermarked_free_trial", true).eq("id", user.id);
+    const {data, error} = await supabase.from("requests").select().eq("watermarked_free_trial", true).eq("user_id", user.id);
+    console.log("isFreeTrialUsed: ", data, error);
     if(error){
       toast({
         title: 'Error checking your free trial status.',
@@ -415,7 +416,7 @@ export default function Home() {
             {user && 
               <Box padding={2} borderRadius={4}>
                 {/* <HStack> */}
-                  {user.email} | {freeTrialUsed ? 'Free trial used' : ''}
+                  {user.email} | {freeTrialUsed ? 'Free trial used | ' : ''}
                   <Link href="/view-requests">View Past Requests</Link> |
                   <Button backgroundColor="red.200" margin={2} color="white" onClick={() => supabase.auth.signOut()}>Sign out</Button>
                 {/* </HStack> */}
@@ -457,13 +458,13 @@ export default function Home() {
                   <Button colorScheme='teal' variant='solid' onClick={() => inputBtnRef.current.click()}>
                     Select files
                   </Button>
-                    <SimpleGrid minChildWidth="150px" spacing={10}>
+                  <br/> Tap image to remove it
+                    <SimpleGrid minChildWidth="110px" spacing={10}>
                     {imageUrls.map((item, index) => (
-                      <VStack marginTop={"4"} borderWidth={2} borderRadius={4} padding={4}>
-                        <Image style={{objectFit: "cover"}} src={item} sizes="" width={140} height={140}/>
-                        <HStack flex={1}>
-                          <Button style={{alignSelf: "flex-end"}} bottom="0rem" color="black" onClick={() => removeImage(index)}>❌</Button>
-                        </HStack>
+                      <VStack key={index} marginTop={"4"} borderWidth={2} borderRadius={4} padding={4} className="block-icon">
+                        <Image style={{objectFit: "cover"}} src={item} width={100} height={100} onClick={() => removeImage(index)}>
+                        </Image>
+                        {/* <Button style={{alignSelf: "flex-end"}} fontSize={8} className="icon-tag" bottom="0rem" color="black" onClick={() => removeImage(index)}>❌</Button> */}
                       </VStack>
                     ))}
                   </SimpleGrid>
@@ -492,7 +493,7 @@ export default function Home() {
               </SimpleGrid>
               <VStack marginTop="8">
                 <HStack>
-                  {!loading && <Button marginTop="4" backgroundColor='blue.300' onClick={() => uploadThenCheckout()}>Proceed to checkout (via Stripe)</Button>}
+                  {/* {!loading && <Button marginTop="4" backgroundColor='blue.300' onClick={() => uploadThenCheckout()}>Proceed to checkout (via Stripe)</Button>} */}
                   {loading && <Spinner/>}
                 </HStack>
                 {(!loading && !freeTrialUsed) && <Button marginTop="4"  onClick={() => uploadFreeTrial()}>Use your watermarked free trial</Button>}

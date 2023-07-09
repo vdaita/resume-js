@@ -8,7 +8,7 @@ import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
 import supabase from '@/utils/supabase.js';
-import { Button, ButtonGroup, Textarea, VStack, Input, Heading, Text, Spinner, Card, CardHeader, CardBody, CardFooter, Badge, Link, useToast} from '@chakra-ui/react';
+import { Button, ButtonGroup, Textarea, VStack, Input, Box, Heading, Flex, Text, Spinner, Card, HStack, CardHeader, CardBody, CardFooter, Badge, Link, useToast} from '@chakra-ui/react';
 import axios from "axios";
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -16,6 +16,8 @@ const STRIPE_PUBLIC = process.env.NEXT_PUBLIC_STRIPE_PUBLIC;
 
 export default function ViewRequests() {
   const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(false);
 
   useEffect(() => {
     // load all the requests with this user's id
@@ -23,6 +25,9 @@ export default function ViewRequests() {
   }, []);
 
   let loadPreviousRequests = async () => {
+
+    setLoading(true);
+
     let userId = await getUserId();
 
     let {data, error} = await supabase.from('requests')
@@ -41,6 +46,8 @@ export default function ViewRequests() {
     }
 
     setRequests(requests);
+
+    setLoading(false);
   }
 
   let getFirstImage = async(id) => {
@@ -61,6 +68,7 @@ export default function ViewRequests() {
 
   let getUserId = async () => {
     const { data: {user} } = await supabase.auth.getUser();
+    setUser(user);
     return user?.id;
   }
 
@@ -103,7 +111,15 @@ export default function ViewRequests() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main classType={styles.main}>
-        <Heading margin={4}>petform</Heading>
+
+        <HStack>
+          <Link href="/">
+            <Heading margin={4}>← petform</Heading>
+          </Link>
+          {loading && <Spinner/>}
+        </HStack>
+
+
         {requests.map((item, index) => (
           <Card maxW='md' margin={4}>
             <CardBody>
