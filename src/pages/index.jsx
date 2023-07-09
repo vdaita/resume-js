@@ -5,7 +5,7 @@ import { Inter } from 'next/font/google'
 import styles from '@/styles/Home.module.css'
 // import {createClient} from '@supabase/supabase-js';
 import supabase from '@/utils/supabase';
-import { Button, SimpleGrid, ButtonGroup, Textarea, Label, VStack, HStack, Input, Heading, Text, Spinner, Flex, Spacer, Box, Link, useToast} from '@chakra-ui/react';
+import { Button, SimpleGrid, ButtonGroup, Textarea, Label, VStack, Container, Stack, Icon, Arrow, useColorModeValue, HStack, Input, Heading, Text, Spinner, Flex, Spacer, Box, Link, useToast} from '@chakra-ui/react';
 import axios from "axios";
 import { Auth, ThemeSupa } from '@supabase/auth-ui-react';
 import { loadStripe } from '@stripe/stripe-js';
@@ -63,7 +63,9 @@ export default function Home() {
   }, []);
 
   let isFreeTrialUsed = async () => {
-    const {data, error} = await supabase.from("requests").select().eq("watermarked_free_trial", true).eq("user_id", user.id);
+    const getUserResponse = await supabase.auth.getUser();
+    const funcUser = getUserResponse.data.user;
+    const {data, error} = await supabase.from("requests").select().eq("watermarked_free_trial", true).eq("user_id", funcUser.id);
     console.log("isFreeTrialUsed: ", data, error);
     if(error){
       toast({
@@ -427,12 +429,40 @@ export default function Home() {
           {!userLoggedIn &&
             <div>
               <Heading>petform</Heading>
-              <label>Please log in or sign up before submitting your form.</label>
-              <Auth
-              supabaseClient={supabase}
-              appearance={{theme: ThemeSupa}}
-              providers={[]}
-              />
+              <Container maxW={'3xl'}>
+                <Stack
+                  as={Box}
+                  textAlign={'center'}
+                  spacing={{ base: 8, md: 14 }}
+                  py={{ base: 20, md: 36 }}>
+                  <Heading
+                    fontWeight={600}
+                    fontSize={{ base: '2xl', sm: '4xl', md: '6xl' }}
+                    lineHeight={'110%'}>
+                    Create beautiful, AI-assisted images  <br />
+                    <Text as={'span'} color={'green.400'}>
+                      of your pet.
+                    </Text>
+                  </Heading>
+                  <Text color={'gray.500'}>
+                    
+                  </Text>
+                  <Stack
+                    direction={'column'}
+                    spacing={3}
+                    align={'center'}
+                    alignSelf={'center'}
+                    position={'relative'}>
+                    <Auth
+                    supabaseClient={supabase}
+                    appearance={{theme: ThemeSupa}}
+                    providers={[]}
+                    />
+                    <label>Please log in to access the form.</label>
+                  </Stack>
+                </Stack>
+              </Container>
+
             </div>
           }
 
@@ -458,7 +488,7 @@ export default function Home() {
                   <Button colorScheme='teal' variant='solid' onClick={() => inputBtnRef.current.click()}>
                     Select files
                   </Button>
-                  <br/> Tap image to remove it
+                  <br/> Tap image to remove
                     <SimpleGrid minChildWidth="110px" spacing={10}>
                     {imageUrls.map((item, index) => (
                       <VStack key={index} marginTop={"4"} borderWidth={2} borderRadius={4} padding={4} className="block-icon">
