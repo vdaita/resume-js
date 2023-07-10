@@ -256,6 +256,7 @@ export default function Home() {
   }
 
   let uploadFreeTrial = async () => {
+    fbq('track', 'StartTrial');
     const wasFreeTrialUsed = await isFreeTrialUsed();
     if(wasFreeTrialUsed){
       toast({
@@ -406,12 +407,7 @@ export default function Home() {
 
   return (
     <>
-      <Head>
-        <title>Petform</title>
-        <meta name="description" content="Generate pet photo" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+
       <main className={styles.main}>
 
           <Flex top="1rem" right="1rem" alignSelf="end">
