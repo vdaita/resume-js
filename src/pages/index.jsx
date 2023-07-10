@@ -434,7 +434,7 @@ export default function Home() {
                   as={Box}
                   textAlign={'center'}
                   spacing={{ base: 8, md: 14 }}
-                  py={{ base: 20, md: 36 }}>
+                  py={{ base: 16, md: 20 }}>
                   <Heading
                     fontWeight={600}
                     fontSize={{ base: '2xl', sm: '4xl', md: '6xl' }}
