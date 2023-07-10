@@ -256,7 +256,6 @@ export default function Home() {
   }
 
   let uploadFreeTrial = async () => {
-    fbq('track', 'StartTrial');
     const wasFreeTrialUsed = await isFreeTrialUsed();
     if(wasFreeTrialUsed){
       toast({
