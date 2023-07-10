@@ -444,21 +444,38 @@ export default function Home() {
                       of your pet.
                     </Text>
                   </Heading>
-                  <Text color={'gray.500'}>
-                    
-                  </Text>
+                  <HStack>
+                    <VStack>
+                      <Text fontSize="3xl">
+                        Source Images
+                      </Text>
+                      <Image src="/original.png" width={500} height={300}/>
+                    </VStack>
+                    <Text fontSize="6xl">→</Text>
+                    <VStack>
+                      <Text fontSize="3xl">
+                        Generated
+                      </Text>
+                      <Text fontSize="sm">
+                        on a mountain<br/>
+                        as an astronaut<br/>
+                        sunset in the background<br/>
+                      </Text>
+                      <Image src="/generated.png" width={300} height={300}/>
+                    </VStack>
+                  </HStack>
                   <Stack
                     direction={'column'}
                     spacing={3}
                     align={'center'}
                     alignSelf={'center'}
                     position={'relative'}>
+                   <Text fontSize="2xl">Log in or sign up and get started!</Text>
                     <Auth
                     supabaseClient={supabase}
                     appearance={{theme: ThemeSupa}}
                     providers={[]}
                     />
-                    <label>Please log in to access the form.</label>
                   </Stack>
                 </Stack>
               </Container>
@@ -534,8 +551,8 @@ export default function Home() {
 
         <Box spacing={2}>
           <Text>feedback? <Link href="mailto:vijay@longlaketech.com">email me at vijay@longlaketech.com</Link></Text>
-          <Link href="/terms-and-conditions">Terms and Conditions  </Link>
-          <Link href="/about"> About</Link>
+          <Link href="/terms">Terms and Conditions  </Link>
+          {/* <Link href="/about"> About</Link> */}
         </Box>
       </main>
     </>
