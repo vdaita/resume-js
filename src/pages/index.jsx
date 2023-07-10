@@ -445,23 +445,24 @@ export default function Home() {
                     </Text>
                   </Heading>
                   <HStack>
-                    <VStack>
+                    <VStack alignSelf="flex-start">
                       <Text fontSize="3xl">
                         Source Images
                       </Text>
                       <Image src="/original.png" width={500} height={300}/>
                     </VStack>
                     <Text fontSize="6xl">→</Text>
-                    <VStack>
+                    <VStack alignSelf="flex-start">
                       <Text fontSize="3xl">
-                        Generated
+                        Generated Images
                       </Text>
-                      <Text fontSize="sm">
+                      <Image src="/generated.png" width={300} height={300}/>
+                      <Text fontSize="sm" align="left">
+                        <b>Prompts</b><br/>
                         on a mountain<br/>
                         as an astronaut<br/>
                         sunset in the background<br/>
                       </Text>
-                      <Image src="/generated.png" width={300} height={300}/>
                     </VStack>
                   </HStack>
                   <Stack
