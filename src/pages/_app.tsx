@@ -1,10 +1,11 @@
 import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 import { ChakraProvider } from '@chakra-ui/react';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import Script from 'next/script';
 import { Router } from 'next/router';
 import Head from 'next/head';
+import Hotjar from '@hotjar/browser';
 
 // function FacebookPixel(){
 //   React.useEffect(() => {
@@ -22,7 +23,14 @@ import Head from 'next/head';
 //   return null;
 // }
 
+const siteId = 3569199;
+const hotjarVersion = 6;
+
 export default function App({ Component, pageProps }: AppProps) {
+  useEffect(() => {
+    Hotjar.init(siteId, hotjarVersion);
+  }, []);
+  
   return (
     <>
       <Head>
