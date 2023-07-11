@@ -256,6 +256,7 @@ export default function Home() {
   }
 
   let uploadFreeTrial = async () => {
+    setLoading(true);
     const wasFreeTrialUsed = await isFreeTrialUsed();
     if(wasFreeTrialUsed){
       toast({
@@ -536,6 +537,7 @@ export default function Home() {
               </SimpleGrid>
               <VStack marginTop="8">
                 <HStack>
+                  <p>Payments have not been enabled yet. Please use your free trial.</p>
                   {/* {!loading && <Button marginTop="4" backgroundColor='blue.300' onClick={() => uploadThenCheckout()}>Proceed to checkout (via Stripe)</Button>} */}
                   {loading && <Spinner/>}
                 </HStack>
