@@ -5,7 +5,7 @@ import React, {useEffect, useState} from 'react';
 import Script from 'next/script';
 import { Router } from 'next/router';
 import Head from 'next/head';
-import Hotjar from '@hotjar/browser';
+// import Hotjar from '@hotjar/browser';
 
 // function FacebookPixel(){
 //   React.useEffect(() => {
@@ -23,14 +23,14 @@ import Hotjar from '@hotjar/browser';
 //   return null;
 // }
 
-const siteId = 3569199;
-const hotjarVersion = 6;
+// const siteId = 3569199;
+// const hotjarVersion = 6;
 
 export default function App({ Component, pageProps }: AppProps) {
-  useEffect(() => {
-    Hotjar.init(siteId, hotjarVersion);
-  }, []);
-  
+  // useEffect(() => {
+  //   Hotjar.init(siteId, hotjarVersion);
+  // }, []);
+
   return (
     <>
       <Head>
@@ -50,6 +50,18 @@ export default function App({ Component, pageProps }: AppProps) {
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '257397480350606');
             fbq('track', 'PageView');
+          `}
+        </Script>
+        <Script>
+          {`
+          (function(h,o,t,j,a,r){
+              h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+              h._hjSettings={hjid:3569199,hjsv:6};
+              a=o.getElementsByTagName('head')[0];
+              r=o.createElement('script');r.async=1;
+              r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+              a.appendChild(r);
+          })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
           `}
         </Script>
       </Head>
