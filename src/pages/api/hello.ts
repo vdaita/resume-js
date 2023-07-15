@@ -1,14 +1,56 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import type { NextApiRequest, NextApiResponse } from 'next'
+// https://devblog.pedro.resende.biz/how-to-create-a-file-upload-api-using-next-js
+
+// have this file just be for sending a request to openai
+
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { Configuration, OpenAIApi } from "openai";
+
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY
+});
+const openai = new OpenAIApi(configuration);
 
 type Data = {
-  name: string
-}
+  message?: string
+};
 
-export default async function handler(
+const handler = async (
   req: NextApiRequest,
   res: NextApiResponse<Data>
-) {
-  console.log("hello.ts received request");
-  res.status(200).json({ name: 'John Doe' })
+) => {
+  try{
+    let fileContent = req.body.resume;
+    let jobDesc = req.body.jobDesc;
+  
+    // send information to the HuggingFace/OpenAI API
+    if(fileContent && jobDesc){
+      let prompt = `JOB DESCRIPTION:
+
+      ${jobDesc}
+      
+      CURRENT RESUME:
+      
+      ${fileContent}
+      
+      INSTRUCTION:
+      
+      You are an expert resume writer with many years of experience helping people get jobs and working within HR departments. Generate a highly effective resume and a cover letter each in LaTeX format based on the above current resume and optimized to get hired for the above job description. Do not use any LaTeX extensions or fonts that don't come standard. Do not list anything on the new resume that's not based on content from the above current resume. The resume must be capable of getting past HR Applicant Tracking System filters.`
+
+      const chatCompletion = await openai.createChatCompletion({
+        model: "gpt-4.0",
+        messages: [{role: "user", content: prompt}]
+      });
+
+      res.status(200).send({message: chatCompletion.data.choices[0].message?.content});
+    } else {
+      res.status(500).send({message: "Incomplete input"});
+    }
+
+    // using social logins instead of email will probably reduce shareability significantly
+  } catch (err) {
+    res.status(400).send({message: 'Bad request'});
+  }
 }
+
+export default handler;
