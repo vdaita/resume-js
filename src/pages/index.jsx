@@ -131,14 +131,17 @@ export default function Index() {
           {!loading && <Button margin={2} onClick={() => query("cover letter")}>Generate Cover Letter</Button>}
           {loading && <Spinner/>}
           <br/>
-          <Box padding={2}>
-            <Text fontSize="lg">Edit Result (Markdown)</Text>
-            <Textarea height={"400"}  onChange={(e) => setResult(e.target.value)} value={result}/>
-            {result.length > 0 && <Button margin={2} onClick={() => window.print()}>Print</Button>}
-            {/* {result.length > 0 && <ReactToPrint
-              trigger={() => <Button margin={2}>Print</Button>}
-              content={() => markdownBox.current}/>} */}
-          </Box>
+          {result.length > 0 && 
+            <Box padding={2}>
+              <Text fontSize="lg">Edit Result (Markdown)</Text>
+              <Textarea height={"400"}  onChange={(e) => setResult(e.target.value)} value={result}/>
+              <Button margin={2} onClick={() => window.print()}>Print</Button>
+              {/* {result.length > 0 && <ReactToPrint
+                trigger={() => <Button margin={2}>Print</Button>}
+                content={() => markdownBox.current}/>} */}
+            </Box>
+          }
+
           
         </div>
 
