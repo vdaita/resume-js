@@ -119,3 +119,9 @@ a {
     color-scheme: dark;
   }
 }
+
+@media print {
+  .print-hide {
+    display: none;
+  }
+}

@@ -173,6 +173,12 @@
   }
 }
 
+@media print {
+  .print-hide {
+    display: none;
+  }
+}
+
 /* Mobile */
 @media (max-width: 700px) {
   .content {

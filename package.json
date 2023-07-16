@@ -22,7 +22,9 @@
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.6",
     "axios": "^1.4.0",
+    "chakra-ui-markdown-renderer": "^4.1.0",
     "framer-motion": "^10.12.17",
+    "html2pdf.js": "^0.10.1",
     "mammoth": "^1.6.0",
     "micro": "^10.0.1",
     "next": "13.4.7",
@@ -32,6 +34,8 @@
     "react-facebook-pixel": "^1.0.4",
     "react-helmet": "^6.1.0",
     "react-latex-next": "^2.2.0",
+    "react-markdown": "^8.0.7",
+    "react-to-print": "^2.14.13",
     "stripe": "^12.10.0",
     "typescript": "5.1.3"
   }
