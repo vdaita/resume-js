@@ -58,8 +58,8 @@ const handler = async (
     }
 
     // using social logins instead of email will probably reduce shareability significantly
-  } catch (err) {
-    console.error("Exception", err.toJSON());
+  } catch (err: any) {
+    console.error("Exception", err);
     res.status(400).send({message: 'Error'});
   }
 }
