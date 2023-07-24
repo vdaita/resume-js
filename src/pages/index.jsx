@@ -62,26 +62,82 @@ export default function Index() {
 
   let query = async (outputType) => {
     setLoading(true);
-    let res = await fetch("/api/hello", {
-      method: "POST",
+
+    console.log("loading is true");
+
+    const response = await fetch("/api/hello", {
+      method: 'POST',
       body: JSON.stringify({
         resume: resume,
         job: desc,
         type: outputType        
-      }),
-      headers: new Headers({
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
       })
     });
+    const stream = response.body;
+    const reader = stream.getReader();
 
-    let ret = await res.json();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        console.log("read another chunk");
+        if (done) {
+          break;
+        }
+        const decodedValue = new TextDecoder().decode(value);
+        console.log(decodedValue);
+        setResult((res) => (res + decodedValue));
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      reader.releaseLock();
+    }
+
+    // let res = await fetch("/api/hello", {
+    //   method: "POST",
+    //   body: JSON.stringify({
+    //     resume: resume,
+    //     job: desc,
+    //     type: outputType        
+    //   }),
+    //   headers: new Headers({
+    //     'Content-Type': 'application/json',
+    //     'Accept': 'application/json'
+    //   })
+    // });
+
+    // console.log("Response: ", res);
+
+    // if(!res.ok){
+    //   throw new Error(res.statusText);
+    // }
+
+    // const data = res.body;
+    // console.log(data);
+    // if(!data){
+    //   return;
+    // }
+    // const reader = data.getReader();
+    // const decoder = new TextDecoder();
+    // let done = false;
+
+    // while(!done){
+    //   const { value, done: doneReading } = await reader.read();
+    //   done = doneReading;
+    //   const chunkValue = decoder.decode(value);
+    //   console.log("Adding chunk ", chunkValue);
+    //   setResult((result) => result + chunkValue);
+    // }
     
-    console.log("Response received: ", res, res.body, ret);
-
-    setResult(ret.message);
-
     setLoading(false);
+
+    // let ret = await res.json();
+    
+    // console.log("Response received: ", res, res.body, ret);
+
+    // setResult(ret.message);
+
+    // setLoading(false);
   }
 
   // https://dev.to/kazmi066/converting-jsx-to-downloadable-pdf-in-react-20bh
