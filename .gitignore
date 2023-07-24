@@ -4,3 +4,4 @@ node_modules
 .env.local
 supabase/.env
 supabase/.env.local
+.vercel
