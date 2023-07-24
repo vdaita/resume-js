@@ -6,7 +6,7 @@
 import { Configuration, OpenAIApi } from "openai";
 import { OpenAIStream } from '../../../utils/OpenAIStream';
 
-import { ChatOpenAI } from "langchain/chat_models";
+import { ChatOpenAI } from "../../../node_modules/langchain/chat_models/openai";
 import { HumanChatMessage, SystemChatMessage } from "langchain/schema";
 import { CallbackManager } from "langchain/callbacks";
 
