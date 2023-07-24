@@ -75,6 +75,7 @@ export default function Index() {
     });
     const stream = response.body;
     const reader = stream.getReader();
+    setResult("");
 
     try {
       while (true) {
