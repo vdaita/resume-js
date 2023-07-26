@@ -3,24 +3,26 @@
 // have this file just be for sending a request to openai
 
 // import type { NextApiRequest, NextApiResponse } from 'next';
-import { Configuration, OpenAIApi } from "openai";
-import { OpenAIStream } from '../../../utils/OpenAIStream';
 
 import { ChatOpenAI } from "../../../node_modules/langchain/chat_models/openai";
-import { HumanChatMessage, SystemChatMessage } from "langchain/schema";
+import { ChatMessage, HumanChatMessage, SystemChatMessage } from "langchain/schema";
 import { CallbackManager } from "langchain/callbacks";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// export const config = {
-//   runtime: "edge"
-// };
+export const config = {
+  runtime: "edge"
+};
 
 export default async function handler(req, res) {
   try {
-    res.writeHead(200, { 
-      "Content-Type": "application/octet-stream"
-    , "Transfer-Encoding": "chunked" });
+    // res.writeHead(200, { 
+    //   "Content-Type": "application/octet-stream"
+    // , "Transfer-Encoding": "chunked" });
+    res.headers.set({
+      "Content-Type": "application/octet-stream",
+      "Transfer-Encoding": "chunked"
+    })
     
     if (!OPENAI_API_KEY) {
       throw new Error("OPENAI_API_KEY is not defined.");
@@ -28,6 +30,7 @@ export default async function handler(req, res) {
 
     // console.log(req);
     const {resume, job, outputType} = req.body;
+    // console.log(req.body);
 
     let s = "";
     const chatStreaming = new ChatOpenAI({
@@ -51,9 +54,8 @@ export default async function handler(req, res) {
     }
 
     await chatStreaming.call([
-      new SystemChatMessage(
-        `You are an expert resume writer with many years of experience helping people get jobs and working within HR departments. Generate a highly effective ${outputType} each in Markdown format based on the given resume and optimized to get hired for the given job description Do not use any Markdown extensions or fonts that don't come standard. Do not list anything on the new resume that's not based on content from the above current resume. The resume must be capable of getting past HR Applicant Tracking System filters.`),
-      new HumanChatMessage(`Given resume: \n ${resume} \n Given job description: \n ${job}`)
+      new SystemChatMessage(`You are an expert in resume writing with 30 years of experience. You use Markdown. Here is the job I am applying for: ${job}. Here's the context of my resume: ${resume}`),
+      new HumanChatMessage("Please generate a new resume based on my resume context and my job description.")
     ]);
 
     res.end();

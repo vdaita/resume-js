@@ -7,6 +7,8 @@ import { Button, ButtonGroup, Textarea, VStack, HStack, Box, Link, Input, Headin
 import mammoth from 'mammoth/mammoth.browser';
 import ReactMarkdown from 'react-markdown';
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
+import supabase from './utils/supabase';
+
 // import html2pdf from 'html2pdf.js/dist/html2pdf.min'
 import ReactToPrint, { useReactToPrint } from 'react-to-print';
 
@@ -65,34 +67,62 @@ export default function Index() {
 
     console.log("loading is true");
 
-    const response = await fetch("/api/hello", {
+    const response = await fetch("https://fmyzoqfdmuxtujffwngp.supabase.co/functions/v1/resume-gpt", {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         resume: resume,
         job: desc,
         type: outputType        
       })
     });
-    const stream = response.body;
-    const reader = stream.getReader();
-    setResult("");
 
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        console.log("read another chunk");
-        if (done) {
-          break;
-        }
-        const decodedValue = new TextDecoder().decode(value);
-        console.log(decodedValue);
-        setResult((res) => (res + decodedValue));
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      reader.releaseLock();
-    }
+    // const {data, error} = await supabase.functions.invoke('test');
+    // console.log(data, error);
+
+    // const { data, error } = await supabase.functions.invoke('resume-gpt', {
+    //   // body: {
+    //   //     'resume': resume,
+    //   //     'job': desc,
+    //   //     'type': outputType        
+    //   //   },
+    //   // method: "POST",
+    //   headers: {
+    //     'resume': resume,
+    //     'job': desc,
+    //     'type': outputType    
+    //   }
+    // });
+
+    // console.log(data, error);
+    // setResult(data.message);
+
+    console.log(response);
+
+    // setResult(response.message);
+
+    // const stream = response.body;
+    // const reader = stream.getReader();
+    // setResult("");
+
+    // try {
+    //   while (true) {
+    //     const { done, value } = await reader.read();
+    //     console.log("read another chunk");
+    //     if (done) {
+    //       break;
+    //     }
+    //     const decodedValue = new TextDecoder().decode(value);
+    //     console.log(decodedValue);
+    //     setResult((res) => (res + decodedValue));
+    //   }
+    // } catch (error) {
+    //   console.error(error);
+    // } finally {
+    //   reader.releaseLock();
+    // }
 
     // let res = await fetch("/api/hello", {
     //   method: "POST",
