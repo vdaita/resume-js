@@ -11,6 +11,7 @@ import supabase from './utils/supabase';
 
 // import html2pdf from 'html2pdf.js/dist/html2pdf.min'
 import ReactToPrint, { useReactToPrint } from 'react-to-print';
+import { useTextBuffer, StreamingText } from "nextjs-openai";
 
 export default function Index() {
 
@@ -26,12 +27,31 @@ export default function Index() {
   
   const [result, setResult] = useState("");
 
+  const [data, setData] = useState({
+
+  });
+
+  const { buffer, refresh, cancel, done } = useTextBuffer({ 
+    url: "/api/generate",
+    throttle: 100,
+    data
+  });
+
   // const handlePrint = () => {
   //   console.log(markdownBox, markdownBox.current);
   //   useReactToPrint({
   //     content: () => markdownBox.current
   //   })
   // }
+
+  useEffect(() => {
+    console.log(buffer);
+    let addbuff = "";
+    for(var i = 0; i < buffer.length; i++){
+      addbuff += buffer[i];
+    }
+    setResult(addbuff);
+  }, [buffer]);
 
   const handlePrint = useReactToPrint({
     content: () => markdownBoxRef.current
@@ -66,6 +86,15 @@ export default function Index() {
     setLoading(true);
 
     console.log("loading is true");
+
+    setData({
+      resume: resume,
+      job: desc,
+      outputType: outputType
+    });
+
+    setLoading(false);
+
 
     // const response = await fetch("https://fmyzoqfdmuxtujffwngp.supabase.co/functions/v1/resume-gpt", {
     //   method: 'POST',
@@ -103,26 +132,26 @@ export default function Index() {
 
     // setResult(response.message);
 
-    const stream = response.body;
-    const reader = stream.getReader();
-    setResult("");
+    // const stream = response.body;
+    // const reader = stream.getReader();
+    // setResult("");
 
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        console.log("read another chunk");
-        if (done) {
-          break;
-        }
-        const decodedValue = new TextDecoder().decode(value);
-        console.log(decodedValue);
-        setResult((res) => (res + decodedValue));
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      reader.releaseLock();
-    }
+    // try {
+    //   while (true) {
+    //     const { done, value } = await reader.read();
+    //     console.log("read another chunk");
+    //     if (done) {
+    //       break;
+    //     }
+    //     const decodedValue = new TextDecoder().decode(value);
+    //     console.log(decodedValue);
+    //     setResult((res) => (res + decodedValue));
+    //   }
+    // } catch (error) {
+    //   console.error(error);
+    // } finally {
+    //   reader.releaseLock();
+    // }
 
     // let res = await fetch("/api/hello", {
     //   method: "POST",
@@ -160,7 +189,6 @@ export default function Index() {
     //   setResult((result) => result + chunkValue);
     // }
     
-    setLoading(false);
 
     // let ret = await res.json();
     
@@ -221,6 +249,7 @@ export default function Index() {
           {result.length > 0 && 
             <Box padding={2}>
               <Text fontSize="lg">Edit Result (Markdown)</Text>
+              {/* <StreamingText buffer={buffer} fade={600}/> */}
               <Textarea height={"400"}  onChange={(e) => setResult(e.target.value)} value={result}/>
               <Button margin={2} onClick={() => window.print()}>Print</Button>
               {/* {result.length > 0 && <ReactToPrint

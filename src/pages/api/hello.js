@@ -54,8 +54,8 @@ export default async function handler(req, res) {
     }
 
     await chatStreaming.call([
-      new SystemChatMessage(`You are an expert in resume writing with 30 years of experience. You use Markdown. Here is the job I am applying for: ${job}. Here's the context of my resume: ${resume}`),
-      new HumanChatMessage("Please generate a new resume based on my resume context and my job description.")
+      new SystemChatMessage(`You are an expert in ${outputType} writing with 30 years of experience. You use Markdown. Here is the job I am applying for: ${job}. Here's the context of my resume: ${resume}`),
+      new HumanChatMessage(`Please generate a new ${outputType} based on my resume context and my job description.`)
     ]);
 
     res.end();
