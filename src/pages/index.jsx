@@ -67,17 +67,17 @@ export default function Index() {
 
     console.log("loading is true");
 
-    const response = await fetch("https://fmyzoqfdmuxtujffwngp.supabase.co/functions/v1/resume-gpt", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        resume: resume,
-        job: desc,
-        type: outputType        
-      })
-    });
+    // const response = await fetch("https://fmyzoqfdmuxtujffwngp.supabase.co/functions/v1/resume-gpt", {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json'
+    //   },
+    //   body: JSON.stringify({
+    //     resume: resume,
+    //     job: desc,
+    //     type: outputType        
+    //   })
+    // });
 
     // const {data, error} = await supabase.functions.invoke('test');
     // console.log(data, error);
@@ -99,30 +99,30 @@ export default function Index() {
     // console.log(data, error);
     // setResult(data.message);
 
-    console.log(response);
+    // console.log(response);
 
     // setResult(response.message);
 
-    // const stream = response.body;
-    // const reader = stream.getReader();
-    // setResult("");
+    const stream = response.body;
+    const reader = stream.getReader();
+    setResult("");
 
-    // try {
-    //   while (true) {
-    //     const { done, value } = await reader.read();
-    //     console.log("read another chunk");
-    //     if (done) {
-    //       break;
-    //     }
-    //     const decodedValue = new TextDecoder().decode(value);
-    //     console.log(decodedValue);
-    //     setResult((res) => (res + decodedValue));
-    //   }
-    // } catch (error) {
-    //   console.error(error);
-    // } finally {
-    //   reader.releaseLock();
-    // }
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        console.log("read another chunk");
+        if (done) {
+          break;
+        }
+        const decodedValue = new TextDecoder().decode(value);
+        console.log(decodedValue);
+        setResult((res) => (res + decodedValue));
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      reader.releaseLock();
+    }
 
     // let res = await fetch("/api/hello", {
     //   method: "POST",
