@@ -1,10 +1,4 @@
-import { Configuration, OpenAIApi } from 'openai-edge'
-import { OpenAIStream, StreamingTextResponse } from 'ai'
-
-const config = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY
-})
-const openai = new OpenAIApi(config)
+import { OpenAI } from "openai-streams";
 
 export default async function handler(req) {
 
@@ -24,29 +18,23 @@ export default async function handler(req) {
         You are an expert ${outputType} writer with many years of experience helping people get jobs and working within HR departments. Generate a highly effective ${outputType} each in Markdown format based on the above current resume and optimized to get hired for the above job description. Do not use any Markdown extensions or fonts that don't come standard. Do not list anything on the new resume that's not based on content from the above current resume. The resume must be capable of getting past HR Applicant Tracking System filters.`
     
         console.log("prompt created");
-
-        const response = await openai.createChatCompletion({
-            model: 'gpt-3.5-turbo',
-            stream: true,
-            messages: [{role: "system", content: prompt}]
-        });
-        const stream = OpenAIStream(response);
-        return new StreamingTextResponse(stream);
     
-        // const stream = await OpenAI(
-        //     "chat",
-        //     {
-        //     model: "gpt-3.5-turbo",
-        //     messages: [{role: "system", content: prompt}],
-        //     },
-        //     { apiKey: process.env.OPENAI_API_KEY }
-        // );
+        const stream = await OpenAI(
+            "chat",
+            {
+            model: "gpt-3.5-turbo",
+            messages: [{role: "system", content: prompt}],
+            },
+            { apiKey: process.env.OPENAI_API_KEY }
+        );
     
-        // return new Response(stream);
+        return new Response(stream);
     } else {
         console.log("can't run")
         return new Response();
     }
 }
 
-export const runtime = 'edge';
+export const config = {
+  runtime: "edge"
+};

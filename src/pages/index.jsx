@@ -11,7 +11,9 @@ import supabase from './utils/supabase';
 
 // import html2pdf from 'html2pdf.js/dist/html2pdf.min'
 import ReactToPrint, { useReactToPrint } from 'react-to-print';
-import { useTextBuffer, StreamingText } from "nextjs-openai";
+// import { useTextBuffer, StreamingText } from "nextjs-openai";
+// import { useCompletion } from 'ai/react'
+// import { useDebouncedCallback } from 'use-debounce'
 
 export default function Index() {
 
@@ -31,11 +33,15 @@ export default function Index() {
 
   });
 
-  const { buffer, refresh, cancel, done } = useTextBuffer({ 
-    url: "/api/generate",
-    throttle: 100,
-    data
-  });
+  // const { buffer, refresh, cancel, done } = useTextBuffer({ 
+  //   url: "/api/generate",
+  //   throttle: 100,
+  //   data
+  // });
+
+  // const { complete, completion, isLoading } = useCompletion({
+  //   api: '/api/generate'
+  // });
 
   // const handlePrint = () => {
   //   console.log(markdownBox, markdownBox.current);
@@ -44,14 +50,14 @@ export default function Index() {
   //   })
   // }
 
-  useEffect(() => {
-    console.log(buffer);
-    let addbuff = "";
-    for(var i = 0; i < buffer.length; i++){
-      addbuff += buffer[i];
-    }
-    setResult(addbuff);
-  }, [buffer]);
+  // useEffect(() => {
+  //   console.log(buffer);
+  //   let addbuff = "";
+  //   for(var i = 0; i < buffer.length; i++){
+  //     addbuff += buffer[i];
+  //   }
+  //   setResult(addbuff);
+  // }, [buffer]);
 
   const handlePrint = useReactToPrint({
     content: () => markdownBoxRef.current
@@ -87,116 +93,49 @@ export default function Index() {
 
     console.log("loading is true");
 
-    setData({
-      resume: resume,
-      job: desc,
-      outputType: outputType
+    // setData({
+    //   resume: resume,
+    //   job: desc,
+    //   outputType: outputType
+    // });
+
+    let res = await fetch("/api/generate", {
+      method: "POST",
+      body: JSON.stringify({
+        resume: resume,
+        job: desc,
+        outputType: outputType        
+      }),
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      })
     });
 
+    console.log("Response: ", res);
+
+    if(!res.ok){
+      throw new Error(res.statusText);
+    }
+
+    const data = res.body;
+    console.log(data);
+    if(!data){
+      return;
+    }
+    const reader = data.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+
+    while(!done){
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      const chunkValue = decoder.decode(value);
+      console.log("Adding chunk ", chunkValue);
+      setResult((result) => result + chunkValue);
+    }
+
     setLoading(false);
-
-
-    // const response = await fetch("https://fmyzoqfdmuxtujffwngp.supabase.co/functions/v1/resume-gpt", {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json'
-    //   },
-    //   body: JSON.stringify({
-    //     resume: resume,
-    //     job: desc,
-    //     type: outputType        
-    //   })
-    // });
-
-    // const {data, error} = await supabase.functions.invoke('test');
-    // console.log(data, error);
-
-    // const { data, error } = await supabase.functions.invoke('resume-gpt', {
-    //   // body: {
-    //   //     'resume': resume,
-    //   //     'job': desc,
-    //   //     'type': outputType        
-    //   //   },
-    //   // method: "POST",
-    //   headers: {
-    //     'resume': resume,
-    //     'job': desc,
-    //     'type': outputType    
-    //   }
-    // });
-
-    // console.log(data, error);
-    // setResult(data.message);
-
-    // console.log(response);
-
-    // setResult(response.message);
-
-    // const stream = response.body;
-    // const reader = stream.getReader();
-    // setResult("");
-
-    // try {
-    //   while (true) {
-    //     const { done, value } = await reader.read();
-    //     console.log("read another chunk");
-    //     if (done) {
-    //       break;
-    //     }
-    //     const decodedValue = new TextDecoder().decode(value);
-    //     console.log(decodedValue);
-    //     setResult((res) => (res + decodedValue));
-    //   }
-    // } catch (error) {
-    //   console.error(error);
-    // } finally {
-    //   reader.releaseLock();
-    // }
-
-    // let res = await fetch("/api/hello", {
-    //   method: "POST",
-    //   body: JSON.stringify({
-    //     resume: resume,
-    //     job: desc,
-    //     type: outputType        
-    //   }),
-    //   headers: new Headers({
-    //     'Content-Type': 'application/json',
-    //     'Accept': 'application/json'
-    //   })
-    // });
-
-    // console.log("Response: ", res);
-
-    // if(!res.ok){
-    //   throw new Error(res.statusText);
-    // }
-
-    // const data = res.body;
-    // console.log(data);
-    // if(!data){
-    //   return;
-    // }
-    // const reader = data.getReader();
-    // const decoder = new TextDecoder();
-    // let done = false;
-
-    // while(!done){
-    //   const { value, done: doneReading } = await reader.read();
-    //   done = doneReading;
-    //   const chunkValue = decoder.decode(value);
-    //   console.log("Adding chunk ", chunkValue);
-    //   setResult((result) => result + chunkValue);
-    // }
-    
-
-    // let ret = await res.json();
-    
-    // console.log("Response received: ", res, res.body, ret);
-
-    // setResult(ret.message);
-
-    // setLoading(false);
   }
 
   // https://dev.to/kazmi066/converting-jsx-to-downloadable-pdf-in-react-20bh
