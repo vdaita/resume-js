@@ -7,7 +7,6 @@ import { Button, ButtonGroup, Textarea, VStack, HStack, Box, Link, Input, Headin
 import mammoth from 'mammoth/mammoth.browser';
 import ReactMarkdown from 'react-markdown';
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import supabase from './utils/supabase';
 
 // import html2pdf from 'html2pdf.js/dist/html2pdf.min'
 import ReactToPrint, { useReactToPrint } from 'react-to-print';
